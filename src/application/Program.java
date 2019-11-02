@@ -5,10 +5,12 @@ import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 
 import db.DB;
+import db.DbException;
 import db.DbIntegrityException;
 
 public class Program {
@@ -17,23 +19,35 @@ public class Program {
 	
 		
 		Connection conn = null;
-		PreparedStatement st = null;
+		Statement st = null;
 		
 		try {
 			conn = DB.getConnection();
+			st = conn.createStatement();
 			
-			st = conn.prepareStatement(
-					"delete from department "
-					+ "where Id = ?"
-					);
+			conn.setAutoCommit(false);
 			
-			st.setInt(1, 2);
+			int rows1 = st.executeUpdate("update seller set BaseSalary = 2090.0 where departmentId = 1");
 			
-			int rowsAffected = st.executeUpdate();
+			int x = 2;
+			if (x == 1) {
+				throw new SQLException("Fake Error!");
+			}
 			
-			System.out.println("Feito! Rows afetadas: " + rowsAffected);
+			int rows2 = st.executeUpdate("update seller set BaseSalary = 3090.0 where departmentId = 2");
+			
+			conn.commit();
+			
+			System.out.println("rows1: " + rows1);
+			System.out.println("rows2: " + rows2);
+			
 		} catch (SQLException e) {
-			throw new DbIntegrityException(e.getMessage()); 
+			try {
+				conn.rollback();
+				throw new DbException("Voltando Transação. Erro: " + e.getMessage());
+			} catch (SQLException e1) {
+				throw new DbException("Erro ao tentar rollback: " + e.getMessage());
+			}
 		} finally {
 			DB.closeConnection();
 			DB.closeStatement(st);
