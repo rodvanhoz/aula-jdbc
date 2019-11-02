@@ -13,50 +13,32 @@ import db.DB;
 public class Program {
 
 	public static void main(String[] args) {
+	
 		
-		SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
 		Connection conn = null;
 		PreparedStatement st = null;
 		
 		try {
 			conn = DB.getConnection();
+			
 			st = conn.prepareStatement(
-					"insert into seller "
-					+ "(Name, Email, BirthDate, BaseSalary, DepartmentId) "
-					+ "values"
-					+ "(?, ?, ?, ?, ?)",
-					st.RETURN_GENERATED_KEYS);
+					"update seller " 
+					+ "set BaseSalary = BaseSalary + ? "
+					+ "where DepartmentId = ?");
 			
-			
-			st.setString(1, "Carl Purple");
-			st.setString(2, "carl@gmail.com");
-			st.setDate(3, new Date(sdf.parse("22/04/1985").getTime()));
-			st.setDouble(4, 3000.00);
-			st.setInt(5, 4);
+			st.setDouble(1, 200.00);
+			st.setInt(2, 2);
 			
 			int rowsAffected = st.executeUpdate();
 			
-			if (rowsAffected > 0) {
-				ResultSet rs = st.getGeneratedKeys();
-				
-				while (rs.next()) {
-					int id = rs.getInt(1);
-					System.out.println("Feito! Id = " + id);
-				}
-			}
-			else {
-				System.out.println("Nenhuma linha inserida");
-			}
-			
-		
+			System.out.println("Feito! Rows afetadas: " + rowsAffected);
 		} catch (SQLException e) {
 			e.printStackTrace();
-		} catch (ParseException e) {
-			e.printStackTrace();
 		} finally {
-			DB.closeConnection();;
+			DB.closeConnection();
 			DB.closeStatement(st);
 		}
+		
 	}
 
 }
